@@ -1,0 +1,165 @@
+{% extends "app/base1.html" %}
+
+{% block title %}Home{% endblock %}
+
+{% block content %}
+<section class="hero-shell">
+    <div class="hero-card hero-copy">
+        <div class="eyebrow">Original Job Portal Experience</div>
+        <h1>Hire faster, apply smarter, and run the full recruitment flow in one portal.</h1>
+        <p>This portal now highlights real tech hiring categories, city-based job posts, employer publishing tools, candidate applications, and admin reporting in a cleaner product-style design.</p>
+        <div class="hero-actions">
+            <a href="{% url 'jobs' %}" class="btn btn-primary">Explore Jobs</a>
+            {% if request.user.is_authenticated %}
+                <a href="{% url 'dashboard' %}" class="btn btn-secondary">Open Dashboard</a>
+            {% else %}
+                <a href="{% url 'candidate_register' %}" class="btn btn-secondary">Candidate Register</a>
+            {% endif %}
+        </div>
+    </div>
+    <div class="hero-card hero-side">
+        <div>
+            <div class="eyebrow dark">Portal Snapshot</div>
+            <h2>Tech jobs across software, AI, cloud, security, testing, and infrastructure.</h2>
+        </div>
+        <div class="hero-badges">
+            <div class="hero-badge">
+                <div class="muted-label">Verified Access</div>
+                <strong>OTP onboarding</strong>
+            </div>
+            <div class="hero-badge">
+                <div class="muted-label">Company Tools</div>
+                <strong>Post city-based jobs</strong>
+            </div>
+            <div class="hero-badge">
+                <div class="muted-label">Candidate Flow</div>
+                <strong>Apply with full details</strong>
+            </div>
+            <div class="hero-badge">
+                <div class="muted-label">Admin View</div>
+                <strong>Charts and search</strong>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="stats-grid">
+    <div class="stat-card">
+        <div class="muted-label">Active Jobs</div>
+        <div class="big-number">{{ stats.jobs }}</div>
+    </div>
+    <div class="stat-card">
+        <div class="muted-label">Companies</div>
+        <div class="big-number">{{ stats.companies }}</div>
+    </div>
+    <div class="stat-card">
+        <div class="muted-label">Verified Candidates</div>
+        <div class="big-number">{{ stats.candidates }}</div>
+    </div>
+    <div class="stat-card">
+        <div class="muted-label">Applications</div>
+        <div class="big-number">{{ stats.applications }}</div>
+    </div>
+</section>
+
+<section>
+    <div class="section-head">
+        <div>
+            <div class="eyebrow">Categories</div>
+            <h2>Technology hiring categories available in the portal</h2>
+            <p>The portal highlights the core job groups you requested so candidates can clearly browse technical roles.</p>
+        </div>
+    </div>
+    <div class="card-grid">
+        {% for category in categories %}
+            <article class="list-card">
+                <div class="muted-label">Open Roles</div>
+                <h3>{{ category.label }}</h3>
+                <p>{{ category.total }} live job{{ category.total|pluralize }} in this category.</p>
+            </article>
+        {% endfor %}
+    </div>
+</section>
+
+<section>
+    <div class="section-head">
+        <div>
+            <div class="eyebrow">Latest Jobs</div>
+            <h2>Fresh job posts for candidates</h2>
+        </div>
+        <a href="{% url 'jobs' %}" class="btn btn-secondary">View All Jobs</a>
+    </div>
+    {% if jobs %}
+        <div class="job-grid">
+            {% for job in jobs %}
+                <article class="job-card">
+                    <div class="job-meta">
+                        <span class="pill">{{ job.get_category_display }}</span>
+                        <span class="pill">{{ job.city|default:job.location }}</span>
+                    </div>
+                    <h3>{{ job.title }}</h3>
+                    <p>{{ job.company.name }} • {{ job.get_employment_type_display }} • {{ job.get_workplace_type_display }}</p>
+                    <p>{{ job.description|truncatechars:140 }}</p>
+                    <div class="inline-actions">
+                        <a href="{% url 'job_detail' job.slug %}" class="btn btn-primary">See Details</a>
+                    </div>
+                </article>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="empty-state">No jobs are live yet. Once employers publish roles, candidates will see them here.</div>
+    {% endif %}
+</section>
+
+<section class="split-layout" style="margin-bottom: 0;">
+    <div class="panel">
+        <div class="eyebrow">Candidate Flow</div>
+        <h2>How a candidate moves through the portal</h2>
+        <div class="flow-grid">
+            <div class="flow-step">
+                <div class="muted-label">Step 1</div>
+                <strong>Register</strong>
+                <p>Create a candidate account and verify OTP.</p>
+            </div>
+            <div class="flow-step">
+                <div class="muted-label">Step 2</div>
+                <strong>Complete profile</strong>
+                <p>Add city, skills, and resume link.</p>
+            </div>
+            <div class="flow-step">
+                <div class="muted-label">Step 3</div>
+                <strong>Apply</strong>
+                <p>Submit the job application with full information.</p>
+            </div>
+            <div class="flow-step">
+                <div class="muted-label">Step 4</div>
+                <strong>Track status</strong>
+                <p>Watch reviewed, shortlisted, and pending applications.</p>
+            </div>
+        </div>
+    </div>
+    <div class="panel">
+        <div class="eyebrow">Employer Flow</div>
+        <h2>What companies can do</h2>
+        <div class="soft-note">Create company profile, post jobs by city, view applicants, and manage hiring with admin visibility across the platform.</div>
+        <div class="mini-stats" style="margin-top: 16px;">
+            <div class="feature-card">
+                <div class="muted-label">Jobs</div>
+                <h3>Category-based postings</h3>
+            </div>
+            <div class="feature-card">
+                <div class="muted-label">Applicants</div>
+                <h3>Stored in database</h3>
+            </div>
+            <div class="feature-card">
+                <div class="muted-label">Admin</div>
+                <h3>User and company list</h3>
+            </div>
+            <div class="feature-card">
+                <div class="muted-label">Analytics</div>
+                <h3>Monthly bar chart</h3>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}

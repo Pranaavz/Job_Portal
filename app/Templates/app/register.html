@@ -1,0 +1,73 @@
+{% extends "app/base1.html" %}
+{% load static %}
+
+{% block title %}Register{% endblock %}
+{% block body_class %}auth-page{% endblock %}
+
+{% block content %}
+<section class="auth-shell">
+    <div class="auth-media" style="background: linear-gradient(180deg, rgba(16, 38, 32, 0.36), rgba(16, 38, 32, 0.82)), url('{% static "images/image_2.jpg" %}') center/cover;">
+        <div>
+            {% if register_kind == 'candidate' %}
+                <div class="eyebrow dark">Candidate Registration</div>
+                <h2>Create candidate account and start applying to jobs.</h2>
+                <p>Register once and access job applications, status tracking, and profile tools.</p>
+            {% elif register_kind == 'company' %}
+                <div class="eyebrow dark">Company Registration</div>
+                <h2>Create employer account to add company details and vacancies.</h2>
+                <p>After registration, login and publish job posts with candidate criteria.</p>
+            {% else %}
+                <div class="eyebrow dark">Create Account</div>
+                <h2>Join the portal as a candidate or company employer.</h2>
+                <p>Register once, verify with OTP, and start using the complete hiring workflow.</p>
+            {% endif %}
+        </div>
+        <div class="auth-points">
+            <div class="auth-point">
+                <strong>Candidates</strong>
+                <p>Apply to jobs and track statuses.</p>
+            </div>
+            <div class="auth-point">
+                <strong>Employers</strong>
+                <p>Create a company profile and publish city-based jobs.</p>
+            </div>
+        </div>
+    </div>
+    <div class="form-card">
+        <div class="eyebrow">{% if register_kind == 'candidate' %}Candidate Registration{% elif register_kind == 'company' %}Company Registration{% else %}Registration{% endif %}</div>
+        <h2>Create your account</h2>
+        <form method="post">
+            {% csrf_token %}
+            {% for field in form %}
+                {% if field.is_hidden %}
+                    {{ field }}
+                {% else %}
+                    <div class="form-row">
+                        <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                        {% if field.name == "password1" or field.name == "password2" %}
+                            <div class="password-field-wrap">
+                                {{ field }}
+                                <button type="button" class="password-toggle" data-password-toggle="{{ field.id_for_label }}">Show</button>
+                            </div>
+                        {% else %}
+                            {{ field }}
+                        {% endif %}
+                        {{ field.errors }}
+                    </div>
+                {% endif %}
+            {% endfor %}
+            <button type="submit" class="btn btn-primary">Register and Send OTP</button>
+        </form>
+        <div class="auth-links">
+            {% if register_kind == 'candidate' %}
+                <a href="{% url 'candidate_login' %}" class="btn btn-secondary">Candidate Login</a>
+            {% elif register_kind == 'company' %}
+                <a href="{% url 'company_login' %}" class="btn btn-secondary">Company Login</a>
+            {% else %}
+                <a href="{% url 'candidate_login' %}" class="btn btn-secondary">Candidate Login</a>
+                <a href="{% url 'company_login' %}" class="btn btn-secondary">Company Login</a>
+            {% endif %}
+        </div>
+    </div>
+</section>
+{% endblock %}

@@ -1,0 +1,52 @@
+{% extends "app/base1.html" %}
+
+{% block title %}My Applications{% endblock %}
+
+{% block content %}
+<section class="table-card">
+    <div class="section-head" style="margin-top: 0;">
+        <div>
+            <div class="eyebrow">Candidate Applications</div>
+            <h2>All jobs you applied for</h2>
+        </div>
+    </div>
+
+    {% if applications %}
+        <div class="table-wrap">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Job</th>
+                        <th>Company</th>
+                        <th>Candidate Name</th>
+                        <th>Location</th>
+                        <th>Status</th>
+                        <th>Applied</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for application in applications %}
+                        <tr>
+                            <td><a href="{% url 'job_detail' application.job.slug %}">{{ application.job.title }}</a></td>
+                            <td>{{ application.job.company.name }}</td>
+                            <td>{{ application.full_name|default:application.applicant.get_full_name|default:application.applicant.username }}</td>
+                            <td>{{ application.job.city|default:application.job.location }}</td>
+                            <td>{{ application.status|title }}</td>
+                            <td>{{ application.applied_at|date:"M d, Y H:i" }}</td>
+                            <td>
+                                <form method="post" action="{% url 'delete_application' application.id %}" onsubmit="return confirm('Are you sure you want to delete this application?');">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn btn-secondary">Delete</button>
+                                </form>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    {% else %}
+        <div class="empty-state">You have not submitted any applications yet.</div>
+    {% endif %}
+</section>
+{% endblock %}

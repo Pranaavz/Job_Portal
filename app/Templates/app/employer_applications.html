@@ -1,0 +1,60 @@
+{% extends "app/base1.html" %}
+
+{% block title %}Applicants{% endblock %}
+
+{% block content %}
+<section class="table-card">
+    <div class="section-head" style="margin-top: 0;">
+        <div>
+            <div class="eyebrow">Employer Applicants</div>
+            <h2>All candidate applications for your jobs</h2>
+        </div>
+    </div>
+
+    {% if applications %}
+        <div class="table-wrap">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Applicant</th>
+                        <th>Contact</th>
+                        <th>Job</th>
+                        <th>City</th>
+                        <th>Experience</th>
+                        <th>Skills</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for application in applications %}
+                        <tr>
+                            <td>
+                                <strong>{{ application.full_name }}</strong><br>
+                                Applied {{ application.applied_at|date:"M d, Y H:i" }}
+                            </td>
+                            <td>
+                                {{ application.email }}<br>
+                                {{ application.phone|default:"-" }}
+                            </td>
+                            <td>{{ application.job.title }}</td>
+                            <td>{{ application.current_city|default:"-" }}</td>
+                            <td>{{ application.experience_years }} years</td>
+                            <td>{{ application.skills|truncatechars:80|default:"-" }}</td>
+                            <td>{{ application.status|title }}</td>
+                        </tr>
+                        <tr>
+                            <td colspan="7">
+                                <strong>Cover Letter:</strong> {{ application.cover_letter }}<br>
+                                {% if application.resume_link %}<strong>Resume:</strong> <a href="{{ application.resume_link }}" target="_blank" rel="noopener">Open link</a>{% endif %}
+                                {% if application.portfolio_link %}<br><strong>Portfolio:</strong> <a href="{{ application.portfolio_link }}" target="_blank" rel="noopener">Open link</a>{% endif %}
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    {% else %}
+        <div class="empty-state">No one has applied to your jobs yet.</div>
+    {% endif %}
+</section>
+{% endblock %}

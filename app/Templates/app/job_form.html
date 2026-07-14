@@ -1,0 +1,23 @@
+{% extends "app/base1.html" %}
+
+{% block title %}Post Job{% endblock %}
+
+{% block content %}
+<section class="form-card">
+    <div class="eyebrow">Company Job Posting</div>
+    <h2>Publish a new job in your portal</h2>
+    <p>Add the category, city, experience level, and applicant requirements so candidates can apply with confidence.</p>
+
+    <form method="post">
+        {% csrf_token %}
+        {% for field in form %}
+            <div class="form-row">
+                <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                {{ field }}
+                {{ field.errors }}
+            </div>
+        {% endfor %}
+        <button type="submit" class="btn btn-primary">Publish Job</button>
+    </form>
+</section>
+{% endblock %}

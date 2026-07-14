@@ -1,0 +1,119 @@
+{% extends "app/base1.html" %}
+
+{% block title %}Companies{% endblock %}
+
+{% block content %}
+<section class="table-card">
+    <div class="section-head" style="margin-top: 0;">
+        <div>
+            <div class="eyebrow">Company List</div>
+            <h2>Company profiles with vacancy requirements</h2>
+            <p>Admin can review company registration details, posted vacancies, candidate criteria, location, and applicant volume.</p>
+        </div>
+        <a href="{% url 'admin_dashboard' %}" class="btn btn-secondary">Back to Dashboard</a>
+    </div>
+
+    <form method="get" class="filter-grid compact" style="margin-bottom: 18px;">
+        <input type="text" name="q" value="{{ search_query }}" placeholder="Search company, owner, industry, city">
+        <button type="submit" class="btn btn-primary">Search Companies</button>
+        {% if search_query %}
+            <a href="{% url 'company_list' %}" class="btn btn-secondary">Clear</a>
+        {% endif %}
+    </form>
+
+    <div class="table-wrap">
+        <table>
+            <thead>
+                <tr>
+                    <th>Company</th>
+                    <th>Owner</th>
+                    <th>Industry</th>
+                    <th>Email</th>
+                    <th>Location</th>
+                    <th>Total Jobs</th>
+                    <th>Openings</th>
+                    <th>Applicants</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for company in companies %}
+                    <tr>
+                        <td>{{ company.name }}</td>
+                        <td>{{ company.owner.username }}</td>
+                        <td>{{ company.industry|default:"-" }}</td>
+                        <td>{{ company.email|default:"-" }}</td>
+                        <td>{{ company.location|default:"-" }}</td>
+                        <td>{{ company.total_jobs }}</td>
+                        <td>{{ company.total_openings }}</td>
+                        <td>{{ company.total_applications }}</td>
+                    </tr>
+                {% empty %}
+                    <tr>
+                        <td colspan="8">No companies found.</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</section>
+
+{% for company in companies %}
+    <section class="panel" style="margin-top: 18px;">
+        <div class="section-head" style="margin-top: 0;">
+            <div>
+                <div class="eyebrow">{{ company.name }}</div>
+                <h3 style="margin-bottom: 8px;">Owner: {{ company.owner.get_full_name|default:company.owner.username }}</h3>
+                <p>
+                    {{ company.industry|default:"Industry not shared" }} •
+                    {{ company.location|default:"Location not shared" }} •
+                    {{ company.email|default:"Email not shared" }}
+                </p>
+                {% if company.website %}
+                    <p style="margin-top: 8px;">Website: <a href="{{ company.website }}" target="_blank" rel="noopener">{{ company.website }}</a></p>
+                {% endif %}
+            </div>
+            <div class="soft-note">
+                Jobs: {{ company.total_jobs }}<br>
+                Openings: {{ company.total_openings }}<br>
+                Applicants: {{ company.total_applications }}
+            </div>
+        </div>
+
+        {% if company.description %}
+            <div class="soft-note" style="margin-bottom: 14px;">{{ company.description|linebreaks }}</div>
+        {% endif %}
+
+        {% if company.vacancy_list %}
+            <div class="card-grid" style="grid-template-columns: 1fr 1fr;">
+                {% for job in company.vacancy_list %}
+                    <article class="list-card">
+                        <div class="job-meta">
+                            <span class="pill">{{ job.get_category_display }}</span>
+                            <span class="pill">{{ job.get_employment_type_display }}</span>
+                            <span class="pill">{% if job.is_active %}Active{% else %}Inactive{% endif %}</span>
+                        </div>
+                        <h3>{{ job.title }}</h3>
+                        <p>{{ job.city|default:job.location }} • {{ job.get_experience_level_display }} • {{ job.get_workplace_type_display }}</p>
+                        <p>Openings: {{ job.openings }} • Applicants: {{ job.total_applications }} • Salary: {{ job.salary|default:"Not shared" }}</p>
+                        <div class="soft-note" style="margin-top: 10px;">
+                            <strong>Candidate Criteria:</strong><br>
+                            {{ job.requirements|default:"Company has not added requirements yet."|linebreaks }}
+                        </div>
+                        {% if job.key_skills %}
+                            <div class="soft-note" style="margin-top: 10px;">
+                                <strong>Key Skills:</strong> {{ job.key_skills }}
+                            </div>
+                        {% endif %}
+                        <div class="inline-actions" style="margin-top: 12px;">
+                            <a href="{% url 'admin_job_applications' job.slug %}" class="btn btn-primary">View Applicants</a>
+                            <a href="{% url 'job_detail' job.slug %}" class="btn btn-secondary">Open Job</a>
+                        </div>
+                    </article>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="empty-state">This company has not posted any vacancy yet.</div>
+        {% endif %}
+    </section>
+{% endfor %}
+{% endblock %}

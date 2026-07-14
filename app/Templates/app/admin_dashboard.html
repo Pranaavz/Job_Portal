@@ -1,0 +1,385 @@
+{% extends "app/base1.html" %}
+
+{% block title %}Admin Dashboard{% endblock %}
+
+{% block content %}
+<style>
+    .sb-shell {
+        display: grid;
+        grid-template-columns: 250px 1fr;
+        min-height: 80vh;
+        border-radius: 22px;
+        overflow: hidden;
+        border: 1px solid #d7dce3;
+        box-shadow: 0 22px 50px rgba(16, 24, 40, 0.14);
+        background: #f8f9fc;
+    }
+    .sb-sidebar {
+        background: #212529;
+        color: #c8d0d8;
+        padding: 24px 0;
+    }
+    .sb-logo {
+        padding: 0 24px 24px;
+        font-family: "Sora", sans-serif;
+        font-size: 1.45rem;
+        color: #fff;
+        border-bottom: 1px solid rgba(255,255,255,0.08);
+    }
+    .sb-group {
+        padding: 22px 18px 0;
+    }
+    .sb-label {
+        color: #7c8794;
+        font-size: 0.74rem;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        margin-bottom: 10px;
+        font-weight: 800;
+    }
+    .sb-link {
+        display: block;
+        padding: 12px 14px;
+        border-radius: 12px;
+        color: #d9e0e8;
+        margin-bottom: 8px;
+        font-weight: 600;
+    }
+    .sb-link:hover,
+    .sb-link.active {
+        background: #343a40;
+        color: #fff;
+    }
+    .sb-footer {
+        margin: 28px 18px 0;
+        padding: 14px;
+        border-radius: 14px;
+        background: rgba(255,255,255,0.06);
+        color: #d3dae3;
+    }
+    .sb-main {
+        background: #f8f9fc;
+    }
+    .sb-topbar {
+        background: #212529;
+        padding: 14px 22px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 18px;
+    }
+    .sb-menu {
+        color: white;
+        font-size: 1.2rem;
+        font-weight: 800;
+    }
+    .sb-search {
+        display: flex;
+        align-items: stretch;
+        gap: 0;
+        width: min(420px, 100%);
+    }
+    .sb-search input {
+        border: 1px solid #ced4da;
+        border-right: 0;
+        border-radius: 6px 0 0 6px;
+        padding: 12px 14px;
+        background: white;
+    }
+    .sb-search button {
+        border: 0;
+        border-radius: 0 6px 6px 0;
+        background: #0d6efd;
+        color: white;
+        padding: 0 18px;
+        font-weight: 800;
+    }
+    .sb-user {
+        color: #e9ecef;
+        font-weight: 700;
+        white-space: nowrap;
+    }
+    .sb-body {
+        padding: 26px 22px 28px;
+    }
+    .sb-page-title {
+        margin-bottom: 18px;
+    }
+    .sb-page-title h1 {
+        font-size: 3rem;
+        margin-bottom: 6px;
+    }
+    .sb-card-row {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 18px;
+        margin-bottom: 22px;
+    }
+    .sb-summary {
+        border-radius: 8px;
+        overflow: hidden;
+        color: white;
+        box-shadow: 0 12px 24px rgba(20, 28, 38, 0.12);
+    }
+    .sb-summary-top {
+        padding: 20px;
+        min-height: 94px;
+        display: grid;
+        gap: 8px;
+        align-content: start;
+    }
+    .sb-summary-bottom {
+        padding: 12px 18px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        background: rgba(0,0,0,0.12);
+        font-weight: 700;
+    }
+    .sb-blue { background: #0d6efd; }
+    .sb-yellow { background: #ffc107; color: #fff; }
+    .sb-green { background: #198754; }
+    .sb-red { background: #dc3545; }
+    .sb-panels {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 18px;
+        margin-bottom: 22px;
+    }
+    .sb-panel {
+        background: white;
+        border: 1px solid #dbe3ea;
+        border-radius: 8px;
+        overflow: hidden;
+    }
+    .sb-panel-head {
+        padding: 14px 16px;
+        border-bottom: 1px solid #e7edf3;
+        font-weight: 700;
+        color: #495057;
+        background: #fff;
+    }
+    .sb-panel-body {
+        padding: 16px;
+    }
+    .sb-area-chart {
+        height: 270px;
+        border-radius: 8px;
+        background:
+            linear-gradient(180deg, rgba(13,110,253,0.18), rgba(13,110,253,0.04)),
+            white;
+        border: 1px solid #e6eef7;
+        position: relative;
+        overflow: hidden;
+    }
+    .sb-area-chart::before {
+        content: "";
+        position: absolute;
+        inset: 22px 18px 24px 18px;
+        background:
+            linear-gradient(to top, rgba(13,110,253,0.18), rgba(13,110,253,0.06)),
+            polygon(0 100%, 8% 60%, 18% 40%, 30% 55%, 42% 25%, 55% 22%, 68% 18%, 80% 45%, 90% 15%, 100% 5%);
+        clip-path: polygon(0% 100%, 0% 62%, 10% 35%, 22% 47%, 34% 22%, 46% 18%, 58% 12%, 70% 40%, 82% 32%, 100% 0%, 100% 100%);
+        border-bottom: 3px solid #0d6efd;
+    }
+    .sb-bar-chart {
+        display: grid;
+        grid-template-columns: repeat(5, minmax(0, 1fr));
+        gap: 12px;
+        align-items: end;
+        height: 270px;
+    }
+    .sb-bar-item {
+        display: flex;
+        flex-direction: column;
+        justify-content: flex-end;
+        gap: 8px;
+        text-align: center;
+        height: 100%;
+    }
+    .sb-bar {
+        width: 100%;
+        min-height: 10px;
+        border-radius: 6px 6px 0 0;
+        background: #0d6efd;
+    }
+    .sb-table-wrap {
+        background: white;
+        border: 1px solid #dbe3ea;
+        border-radius: 8px;
+        overflow: hidden;
+    }
+    .sb-table-wrap table {
+        box-shadow: none;
+        border-radius: 0;
+    }
+    .sb-table-wrap th {
+        background: #f8f9fc;
+    }
+    @media (max-width: 1100px) {
+        .sb-shell,
+        .sb-panels {
+            grid-template-columns: 1fr;
+        }
+        .sb-card-row {
+            grid-template-columns: 1fr 1fr;
+        }
+        .sb-bar-chart {
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+        }
+    }
+    @media (max-width: 760px) {
+        .sb-card-row,
+        .sb-bar-chart,
+        .sb-shell {
+            grid-template-columns: 1fr;
+        }
+        .sb-topbar {
+            flex-direction: column;
+            align-items: stretch;
+        }
+        .sb-search {
+            width: 100%;
+        }
+    }
+</style>
+
+<section class="sb-shell">
+    <aside class="sb-sidebar">
+        <div class="sb-logo">Start Bootstrap</div>
+
+        <div class="sb-group">
+            <div class="sb-label">Core</div>
+            <a href="{% url 'admin_dashboard' %}" class="sb-link active">Dashboard</a>
+        </div>
+
+        <div class="sb-group">
+            <div class="sb-label">Interface</div>
+            <a href="{% url 'admin_jobs' %}" class="sb-link">Charts</a>
+            <a href="{% url 'user_list' %}" class="sb-link">User List</a>
+            <a href="{% url 'company_list' %}" class="sb-link">Company List</a>
+        </div>
+
+        <div class="sb-footer">
+            Logged in as:<br>
+            <strong>admin</strong>
+        </div>
+    </aside>
+
+    <div class="sb-main">
+        <div class="sb-topbar">
+            <div class="sb-menu">≡</div>
+            <form method="get" class="sb-search">
+                <input type="text" name="q" value="{{ search_query }}" placeholder="Search for...">
+                <button type="submit">Q</button>
+            </form>
+            <div class="sb-user">admin</div>
+        </div>
+
+        <div class="sb-body">
+            <div class="sb-page-title">
+                <h1>Dashboard</h1>
+                <p>Dashboard</p>
+            </div>
+
+            <div class="sb-card-row">
+                <div class="sb-summary sb-blue">
+                    <div class="sb-summary-top">
+                        <div>Primary Card</div>
+                        <strong>{{ users_count }} Users</strong>
+                    </div>
+                    <div class="sb-summary-bottom">
+                        <span>View Details</span>
+                        <a href="{% url 'user_list' %}" style="color:inherit;">›</a>
+                    </div>
+                </div>
+                <div class="sb-summary sb-yellow">
+                    <div class="sb-summary-top">
+                        <div>Warning Card</div>
+                        <strong>{{ company_count }} Companies</strong>
+                    </div>
+                    <div class="sb-summary-bottom">
+                        <span>View Details</span>
+                        <a href="{% url 'company_list' %}" style="color:inherit;">›</a>
+                    </div>
+                </div>
+                <div class="sb-summary sb-green">
+                    <div class="sb-summary-top">
+                        <div>Success Card</div>
+                        <strong>{{ jobs_count }} Jobs</strong>
+                    </div>
+                    <div class="sb-summary-bottom">
+                        <span>View Details</span>
+                        <a href="{% url 'admin_jobs' %}" style="color:inherit;">›</a>
+                    </div>
+                </div>
+                <div class="sb-summary sb-red">
+                    <div class="sb-summary-top">
+                        <div>Danger Card</div>
+                        <strong>{{ applications_count }} Applications</strong>
+                    </div>
+                    <div class="sb-summary-bottom">
+                        <span>View Details</span>
+                        <a href="#datatable" style="color:inherit;">›</a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="sb-panels">
+                <div class="sb-panel">
+                    <div class="sb-panel-head">Area Chart Example</div>
+                    <div class="sb-panel-body">
+                        <div class="sb-area-chart"></div>
+                    </div>
+                </div>
+
+                <div class="sb-panel">
+                    <div class="sb-panel-head">Bar Chart Example</div>
+                    <div class="sb-panel-body">
+                        <div class="sb-bar-chart">
+                            {% for item in monthly_jobs %}
+                                <div class="sb-bar-item">
+                                    <div class="sb-bar" style="height: {{ item.height }}%; width: {{ item.bar_width }}%; margin: 0 auto;"></div>
+                                    <strong>{{ item.label }}</strong>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="sb-table-wrap" id="datatable">
+                <div class="sb-panel-head">DataTable Example</div>
+                <div class="table-wrap">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Job</th>
+                                <th>Company</th>
+                                <th>Category</th>
+                                <th>City</th>
+                                <th>Applicants</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for job in job_results %}
+                                <tr>
+                                    <td><a href="{% url 'job_detail' job.slug %}">{{ job.title }}</a></td>
+                                    <td>{{ job.company.name }}</td>
+                                    <td>{{ job.get_category_display }}</td>
+                                    <td>{{ job.city|default:job.location }}</td>
+                                    <td><a href="{% url 'admin_job_applications' job.slug %}">View Applicants</a></td>
+                                </tr>
+                            {% empty %}
+                                <tr>
+                                    <td colspan="5">No jobs found for this search.</td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}

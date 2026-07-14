@@ -1,0 +1,75 @@
+{% extends "app/base1.html" %}
+
+{% block title %}Login{% endblock %}
+{% block body_class %}auth-page{% endblock %}
+
+{% block content %}
+<section class="auth-shell">
+    <div class="auth-media">
+        <div>
+            {% if login_kind == 'candidate' %}
+                <div class="eyebrow dark">Candidate Login</div>
+                <h2>Login as candidate and manage your applications.</h2>
+            {% elif login_kind == 'company' %}
+                <div class="eyebrow dark">Company Login</div>
+                <h2>Login as company to manage vacancies and applicants.</h2>
+                <p>Use your username, email, or mobile to access your employer workspace.</p>
+            {% else %}
+                <div class="eyebrow dark">Secure Login</div>
+                <h2>Access the job portal with username, email, or mobile number.</h2>
+                <p>The portal supports employer, candidate, and admin logins from the same entry point.</p>
+            {% endif %}
+        </div>
+        <div class="auth-points">
+            <div class="auth-point">
+                <strong>Candidate access</strong>
+                <p style="color: black;"><strong>Track your applications and apply to new roles.</strong></p>
+            </div>
+            <div class="auth-point">
+                <strong>Employer access</strong>
+                <p style="color: black;"><strong>Manage company jobs and review applicants.</strong></p>
+            </div>
+        </div>
+    </div>
+    <div class="form-card">
+        <div class="eyebrow">{% if login_kind == 'candidate' %}Candidate Login{% elif login_kind == 'company' %}Company Login{% else %}Login{% endif %}</div>
+        <h2>Welcome back</h2>
+        <form method="post">
+            {% csrf_token %}
+            {% for field in form %}
+                <div class="form-row">
+                    <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                    {% if field.name == "password" %}
+                        <div class="password-field-wrap">
+                            {{ field }}
+                            <button type="button" class="password-toggle" data-password-toggle="{{ field.id_for_label }}">Show</button>
+                        </div>
+                    {% else %}
+                        {{ field }}
+                    {% endif %}
+                    {{ field.errors }}
+                </div>
+            {% endfor %}
+            <button type="submit" class="btn btn-primary">Login</button>
+        </form>
+        <div class="auth-links">
+            <a href="{% url 'forgot_password' %}" class="btn btn-secondary">Forgot Password</a>
+            {% if request.GET.next %}
+                <a href="{% url 'index' %}" class="btn btn-secondary">Back to Home</a>
+            {% elif login_kind == 'candidate' %}
+                <a href="{% url 'candidate_register' %}" class="btn btn-primary">Candidate Registration</a>
+            {% elif login_kind == 'company' %}
+                <a href="{% url 'company_register' %}" class="btn btn-primary">Company Registration</a>
+            {% else %}
+                <a href="{% url 'candidate_register' %}" class="btn btn-primary">Candidate Registration</a>
+                <a href="{% url 'company_register' %}" class="btn btn-primary">Company Registration</a>
+            {% endif %}
+        </div>
+        {% if console_email_mode %}
+            <div class="support-card">
+                Email OTP can go to a real inbox after SMTP is configured. Mobile OTP can also be generated, but real SMS sending needs an SMS gateway integration.
+            </div>
+        {% endif %}
+    </div>
+</section>
+{% endblock %}

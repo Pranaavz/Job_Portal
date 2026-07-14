@@ -1,0 +1,49 @@
+{% extends "app/base1.html" %}
+{% load static %}
+
+{% block title %}Verify OTP{% endblock %}
+{% block body_class %}auth-page{% endblock %}
+
+{% block content %}
+<section class="auth-shell">
+    <div class="auth-media" style="background: linear-gradient(180deg, rgba(16, 38, 32, 0.36), rgba(16, 38, 32, 0.82)), url('{% static "images/image_1.jpg" %}') center/cover;">
+        <div>
+            <div class="eyebrow dark">OTP Verification</div>
+            <h2>Complete verification and unlock the portal.</h2>
+            <p>Use the 6-digit code sent during {{ otp_context_label }} by {{ otp_delivery_channel }}.</p>
+        </div>
+    </div>
+    <div class="form-card">
+        <div class="eyebrow">Verification</div>
+        <h2>Enter OTP</h2>
+        <p>Account: <strong>{{ pending_contact }}</strong></p>
+        <form method="post">
+            {% csrf_token %}
+            <div class="form-row">
+                <label for="{{ form.code.id_for_label }}">OTP Code</label>
+                {{ form.code }}
+                {{ form.code.errors }}
+            </div>
+            <div class="inline-actions">
+                <button type="submit" class="btn btn-primary">Verify OTP</button>
+                <a href="{% url 'resend_otp' %}" class="btn btn-secondary">Resend OTP</a>
+            </div>
+        </form>
+        {% if otp_delivery_mode == "preview" %}
+            <div class="support-card">
+                Email delivery is currently in preview mode for <strong>{{ otp_preview_target }}</strong>. Configure SMTP settings to send OTP to a real inbox.
+                {% if otp_preview_code %}
+                    <code>{{ otp_preview_code }}</code>
+                {% endif %}
+            </div>
+        {% elif otp_delivery_mode == "phone-preview" %}
+            <div class="support-card">
+                OTP is generated for the mobile number <strong>{{ otp_preview_target }}</strong>. Real SMS sending needs an SMS gateway such as Twilio, MSG91, or Fast2SMS.
+                {% if otp_preview_code %}
+                    <code>{{ otp_preview_code }}</code>
+                {% endif %}
+            </div>
+        {% endif %}
+    </div>
+</section>
+{% endblock %}

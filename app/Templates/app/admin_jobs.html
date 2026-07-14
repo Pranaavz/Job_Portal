@@ -1,0 +1,64 @@
+{% extends "app/base1.html" %}
+
+{% block title %}Admin Jobs{% endblock %}
+
+{% block content %}
+<section class="table-card">
+    <div class="section-head" style="margin-top: 0;">
+        <div>
+            <div class="eyebrow">Job List</div>
+            <h2>All job posts in the portal</h2>
+        </div>
+        <a href="{% url 'admin_dashboard' %}" class="btn btn-secondary">Back to Dashboard</a>
+    </div>
+
+    <form method="get" class="filter-grid" style="margin-bottom: 18px;">
+        <input type="text" name="q" value="{{ search_query }}" placeholder="Search title, company, city">
+        <select name="category">
+            <option value="">All categories</option>
+            {% for value, label in categories %}
+                <option value="{{ value }}" {% if selected_category == value %}selected{% endif %}>{{ label }}</option>
+            {% endfor %}
+        </select>
+        <button type="submit" class="btn btn-primary">Search Jobs</button>
+        <a href="{% url 'admin_jobs' %}" class="btn btn-secondary">Reset</a>
+    </form>
+
+    <div class="table-wrap">
+        <table>
+            <thead>
+                <tr>
+                    <th>Job</th>
+                    <th>Company</th>
+                    <th>Category</th>
+                    <th>City</th>
+                    <th>Type</th>
+                    <th>Applicants</th>
+                    <th>Status</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for job in jobs %}
+                    <tr>
+                        <td><a href="{% url 'job_detail' job.slug %}">{{ job.title }}</a></td>
+                        <td>{{ job.company.name }}</td>
+                        <td>{{ job.get_category_display }}</td>
+                        <td>{{ job.city|default:job.location }}</td>
+                        <td>{{ job.get_employment_type_display }}</td>
+                        <td>{{ job.total_applications }}</td>
+                        <td>{% if job.is_active %}Active{% else %}Inactive{% endif %}</td>
+                        <td>
+                            <a href="{% url 'admin_job_applications' job.slug %}" class="btn btn-primary">View Applicants</a>
+                        </td>
+                    </tr>
+                {% empty %}
+                    <tr>
+                        <td colspan="8">No jobs found.</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</section>
+{% endblock %}

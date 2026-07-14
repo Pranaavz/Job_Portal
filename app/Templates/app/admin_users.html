@@ -1,0 +1,58 @@
+{% extends "app/base1.html" %}
+
+{% block title %}Users{% endblock %}
+
+{% block content %}
+<section class="table-card">
+    <div class="section-head" style="margin-top: 0;">
+        <div>
+            <div class="eyebrow">User List</div>
+            <h2>Only user list</h2>
+        </div>
+        <div class="inline-actions">
+            <a href="{% url 'admin_dashboard' %}" class="btn btn-secondary">Back to Dashboard</a>
+        </div>
+    </div>
+
+    <form method="get" class="filter-grid compact" style="margin-bottom: 18px;">
+        <input type="text" name="q" value="{{ search_query }}" placeholder="Search username, name, email, city">
+        <button type="submit" class="btn btn-primary">Search Users</button>
+        {% if search_query %}
+            <a href="{% url 'user_list' %}" class="btn btn-secondary">Clear</a>
+        {% endif %}
+    </form>
+
+    <div class="table-wrap">
+        <table>
+            <thead>
+                <tr>
+                    <th>Username</th>
+                    <th>Name</th>
+                    <th>Email</th>
+                    <th>Phone</th>
+                    <th>Role</th>
+                    <th>City</th>
+                    <th>Verified</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for user in users %}
+                    <tr>
+                        <td>{{ user.username }}</td>
+                        <td>{{ user.get_full_name|default:"-" }}</td>
+                        <td>{{ user.email|default:"-" }}</td>
+                        <td>{{ user.profile.phone|default:"-" }}</td>
+                        <td>{{ user.profile.get_role_display }}</td>
+                        <td>{{ user.profile.location|default:"-" }}</td>
+                        <td>{% if user.profile.is_verified %}Yes{% else %}No{% endif %}</td>
+                    </tr>
+                {% empty %}
+                    <tr>
+                        <td colspan="7">No users found.</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</section>
+{% endblock %}

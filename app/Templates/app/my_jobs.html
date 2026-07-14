@@ -1,0 +1,40 @@
+{% extends "app/base1.html" %}
+
+{% block title %}My Jobs{% endblock %}
+
+{% block content %}
+<section class="panel">
+    <div class="section-head" style="margin-top: 0;">
+        <div>
+            <div class="eyebrow">Employer Jobs</div>
+            <h2>{% if company %}{{ company.name }} job posts{% else %}Your job posts{% endif %}</h2>
+        </div>
+        <div class="inline-actions">
+            <a href="{% url 'post_job' %}" class="btn btn-primary">Post New Job</a>
+            <a href="{% url 'applications' %}" class="btn btn-secondary">View Applicants</a>
+        </div>
+    </div>
+
+    {% if jobs %}
+        <div class="job-grid">
+            {% for job in jobs %}
+                <article class="job-card">
+                    <div class="job-meta">
+                        <span class="pill">{{ job.get_category_display }}</span>
+                        <span class="pill">{{ job.total_applications }} applicants</span>
+                        <span class="pill">{{ job.city|default:job.location }}</span>
+                    </div>
+                    <h3>{{ job.title }}</h3>
+                    <p>{{ job.get_employment_type_display }} • {{ job.get_workplace_type_display }}</p>
+                    <p>{{ job.description|truncatechars:140 }}</p>
+                    <div class="inline-actions">
+                        <a href="{% url 'job_detail' job.slug %}" class="btn btn-secondary">View Job</a>
+                    </div>
+                </article>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="empty-state">No jobs posted yet.</div>
+    {% endif %}
+</section>
+{% endblock %}

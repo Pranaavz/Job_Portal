@@ -1,0 +1,23 @@
+{% extends "app/base1.html" %}
+
+{% block title %}Profile{% endblock %}
+
+{% block content %}
+<section class="form-card">
+    <div class="eyebrow">Candidate Profile</div>
+    <h2>Update your profile information</h2>
+    <p>Your profile details can prefill job applications and help employers review your application faster.</p>
+
+    <form method="post">
+        {% csrf_token %}
+        {% for field in form %}
+            <div class="form-row">
+                <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                {{ field }}
+                {{ field.errors }}
+            </div>
+        {% endfor %}
+        <button type="submit" class="btn btn-primary">Save Profile</button>
+    </form>
+</section>
+{% endblock %}

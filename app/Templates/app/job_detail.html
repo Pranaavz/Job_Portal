@@ -1,0 +1,142 @@
+{% extends "app/base1.html" %}
+
+{% block title %}{{ job.title }}{% endblock %}
+
+{% block content %}
+<section class="detail-grid">
+    <div class="panel">
+        <div class="eyebrow">{{ job.company.name }}</div>
+        <h2>{{ job.title }}</h2>
+        <div class="job-meta" style="margin-bottom: 14px;">
+            <span class="pill">{{ job.get_category_display }}</span>
+            <span class="pill">{{ job.get_employment_type_display }}</span>
+            <span class="pill">{{ job.get_workplace_type_display }}</span>
+            <span class="pill">{{ job.city|default:job.location }}</span>
+        </div>
+        <p>{{ job.description|linebreaks }}</p>
+
+        <div class="section-head">
+            <div>
+                <div class="eyebrow">Requirements</div>
+                <h3>What the employer needs</h3>
+            </div>
+        </div>
+        <p>{{ job.requirements|default:"The employer has not added specific requirements yet."|linebreaks }}</p>
+
+        {% if job.key_skills %}
+            <div class="section-head">
+                <div>
+                    <div class="eyebrow">Key Skills</div>
+                    <h3>Preferred stack</h3>
+                </div>
+            </div>
+            <div class="soft-note">{{ job.key_skills }}</div>
+        {% endif %}
+    </div>
+
+    <div class="panel">
+        <div class="eyebrow">Apply Candidate</div>
+        <h3>Job information</h3>
+        <div class="soft-note">{{ job.company.name }} • {{ job.location }}</div>
+        <div class="mini-stats" style="margin-top: 16px;">
+            <div class="feature-card">
+                <div class="muted-label">Experience</div>
+                <h3>{{ job.get_experience_level_display }}</h3>
+            </div>
+            <div class="feature-card">
+                <div class="muted-label">Openings</div>
+                <h3>{{ job.openings }}</h3>
+            </div>
+            <div class="feature-card">
+                <div class="muted-label">Salary</div>
+                <h3>{{ job.salary|default:"Not shared" }}</h3>
+            </div>
+            <div class="feature-card">
+                <div class="muted-label">Deadline</div>
+                <h3>{{ job.application_deadline|default:"Open" }}</h3>
+            </div>
+        </div>
+
+        <div class="section-head">
+            <div>
+                <div class="eyebrow">Company Details</div>
+                <h3>Who is hiring for this role</h3>
+            </div>
+        </div>
+        <div class="soft-note">
+            <strong>{{ job.company.name }}</strong><br>
+            Industry: {{ job.company.industry|default:"Not shared" }}<br>
+            Location: {{ job.company.location|default:job.location }}<br>
+            Contact Email: {{ job.company.email|default:"Not shared" }}<br>
+            Website:
+            {% if job.company.website %}
+                <a href="{{ job.company.website }}" target="_blank" rel="noopener">{{ job.company.website }}</a>
+            {% else %}
+                Not shared
+            {% endif %}
+        </div>
+        {% if job.company.description %}
+            <div class="soft-note" style="margin-top: 10px;">
+                <strong>About Company:</strong><br>
+                {{ job.company.description|linebreaks }}
+            </div>
+        {% endif %}
+
+        {% if request.user.is_authenticated and request.user.profile.role == 'candidate' %}
+            {% if already_applied %}
+                <div class="empty-state" style="margin-top: 18px;">You have already applied for this job. Your stored application remains visible to you and the company.</div>
+            {% else %}
+                <div class="section-head">
+                    <div>
+                        <div class="eyebrow">Application Form</div>
+                        <h3>Candidate details saved to database</h3>
+                    </div>
+                </div>
+                <form method="post" action="{% url 'apply_job' job.slug %}">
+                    {% csrf_token %}
+                    {% for field in application_form %}
+                        <div class="form-row">
+                            <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                            {{ field }}
+                            {{ field.errors }}
+                        </div>
+                    {% endfor %}
+                    <button type="submit" class="btn btn-primary">Apply for this Job</button>
+                </form>
+            {% endif %}
+        {% elif request.user.is_authenticated %}
+            <div class="empty-state" style="margin-top: 18px;">Only candidate accounts can apply. Employer and admin users can review jobs from their dashboards.</div>
+        {% else %}
+            <div class="inline-actions" style="margin-top: 18px;">
+                <a href="{% url 'candidate_login' %}" class="btn btn-primary">Candidate Login</a>
+                <a href="{% url 'candidate_register' %}" class="btn btn-secondary">Create Candidate Account</a>
+            </div>
+        {% endif %}
+    </div>
+</section>
+
+{% if related_jobs %}
+    <section>
+        <div class="section-head">
+            <div>
+                <div class="eyebrow">Related Jobs</div>
+                <h2>More roles in this category</h2>
+            </div>
+        </div>
+        <div class="job-grid">
+            {% for related in related_jobs %}
+                <article class="job-card">
+                    <div class="job-meta">
+                        <span class="pill">{{ related.city|default:related.location }}</span>
+                    </div>
+                    <h3>{{ related.title }}</h3>
+                    <p>{{ related.company.name }}</p>
+                    <div class="inline-actions">
+                        <a href="{% url 'job_detail' related.slug %}" class="btn btn-secondary">Open Role</a>
+                    </div>
+                </article>
+            {% endfor %}
+        </div>
+    </section>
+{% endif %}
+{% endblock %}

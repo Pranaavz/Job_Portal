@@ -1,0 +1,416 @@
+{% extends "app/base1.html" %}
+
+{% block title %}Dashboard{% endblock %}
+
+{% block content %}
+<style>
+    .stat-card {
+        min-width: 0;
+    }
+    .stat-card-email .big-number {
+        font-size: clamp(1.2rem, 2vw, 1.8rem);
+        line-height: 1.3;
+        overflow-wrap: anywhere;
+        word-break: break-word;
+    }
+    .dash-chart-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 18px;
+    }
+    .dash-chart-box {
+        border: 1px solid #dbe3ea;
+        border-radius: 8px;
+        background: #fff;
+        overflow: hidden;
+    }
+    .dash-chart-title {
+        padding: 12px 14px;
+        border-bottom: 1px solid #e7edf3;
+        font-size: 1rem;
+        font-weight: 700;
+        color: #495057;
+        background: #fff;
+    }
+    .dash-chart-body {
+        padding: 16px 14px 12px;
+    }
+    .dash-sb-layout {
+        display: grid;
+        grid-template-columns: 60px 1fr;
+        gap: 8px;
+        align-items: stretch;
+    }
+    .dash-sb-axis {
+        height: 250px;
+        display: grid;
+        align-items: end;
+        color: #6c757d;
+        font-size: 0.76rem;
+        font-weight: 700;
+        text-align: right;
+        padding-right: 4px;
+    }
+    .dash-sb-area-axis { grid-template-rows: repeat(5, 1fr); }
+    .dash-sb-bar-axis { grid-template-rows: repeat(5, 1fr); }
+    .dash-sb-plot {
+        position: relative;
+        height: 250px;
+        border-left: 1px solid #dee2e6;
+        border-bottom: 1px solid #dee2e6;
+        padding: 0 10px;
+    }
+    .dash-sb-grid {
+        position: absolute;
+        inset: 0 10px 0 0;
+        display: grid;
+        pointer-events: none;
+    }
+    .dash-sb-grid.area { grid-template-rows: repeat(5, 1fr); }
+    .dash-sb-grid.bar { grid-template-rows: repeat(5, 1fr); }
+    .dash-sb-grid span { border-top: 1px solid #eef1f4; }
+    .dash-sb-grid span:last-child { border-top: 0; }
+    .dash-area-svg {
+        position: relative;
+        z-index: 2;
+        width: 100%;
+        height: 100%;
+        display: block;
+    }
+    .dash-area-x {
+        display: grid;
+        grid-template-columns: repeat(13, minmax(0, 1fr));
+        gap: 4px;
+        margin-top: 10px;
+        color: #6c757d;
+        font-size: 0.68rem;
+        font-weight: 700;
+        text-align: center;
+    }
+    .dash-area-x span {
+        display: inline-block;
+        transform: rotate(-28deg);
+        transform-origin: center top;
+        white-space: nowrap;
+    }
+    .dash-sb-bars {
+        position: relative;
+        z-index: 2;
+        height: 100%;
+        display: grid;
+        grid-template-columns: repeat(5, minmax(0, 1fr));
+        gap: 12px;
+        align-items: stretch;
+    }
+    .dash-sb-item {
+        display: flex;
+        flex-direction: column;
+        justify-content: flex-end;
+        align-items: center;
+        gap: 8px;
+        height: 100%;
+    }
+    .dash-sb-bar {
+        width: 82%;
+        border-radius: 3px 3px 0 0;
+        background: #0d6efd;
+        min-height: 2px;
+    }
+    .dash-sb-month {
+        color: #6c757d;
+        font-size: 0.72rem;
+        font-weight: 700;
+        text-align: center;
+    }
+    @media (max-width: 980px) {
+        .dash-chart-grid { grid-template-columns: 1fr; }
+    }
+    @media (max-width: 720px) {
+        .dash-sb-layout { grid-template-columns: 1fr; }
+        .dash-sb-axis {
+            height: auto;
+            grid-template-rows: 1fr;
+            text-align: center;
+            padding-right: 0;
+        }
+        .dash-sb-area-axis { grid-template-columns: repeat(5, 1fr); }
+        .dash-sb-bar-axis { grid-template-columns: repeat(5, 1fr); }
+        .dash-sb-plot {
+            border-top: 1px solid #dee2e6;
+            border-left: 0;
+        }
+    }
+</style>
+
+<section class="panel">
+    <div class="section-head" style="margin-top: 0;">
+        <div>
+            <div class="eyebrow">Dashboard</div>
+            <h2>{{ request.user.first_name|default:request.user.username }}'s workspace</h2>
+            <p>Manage your profile, jobs, applications, and portal activity from one place.</p>
+        </div>
+        <div class="dashboard-links">
+            <a href="{% url 'profile' %}" class="btn btn-secondary">Edit Profile</a>
+            {% if profile.role == 'employer' %}
+                <a href="{% url 'company_profile' %}" class="btn btn-secondary">Company Profile</a>
+                <a href="{% url 'post_job' %}" class="btn btn-primary">Post Job</a>
+            {% endif %}
+            {% if request.user.is_staff %}
+                <a href="{% url 'admin_dashboard' %}" class="btn btn-primary">Admin Dashboard</a>
+            {% endif %}
+        </div>
+    </div>
+
+    <section class="stats-grid">
+        <div class="stat-card">
+            <div class="muted-label">Account Type</div>
+            <div class="big-number">{{ profile.get_role_display }}</div>
+        </div>
+        <div class="stat-card">
+            <div class="muted-label">Verified</div>
+            <div class="big-number">{% if profile.is_verified %}Yes{% else %}No{% endif %}</div>
+        </div>
+        <div class="stat-card">
+            <div class="muted-label">City</div>
+            <div class="big-number">{{ profile.location|default:"-" }}</div>
+        </div>
+        <div class="stat-card stat-card-email">
+            <div class="muted-label">Email</div>
+            <div class="big-number">{{ request.user.email|default:"-" }}</div>
+        </div>
+        <div class="stat-card">
+            <div class="muted-label">Candidates</div>
+            <div class="big-number">{{ candidate_total }}</div>
+        </div>
+    </section>
+</section>
+
+<section class="panel">
+    <div class="section-head" style="margin-top: 0;">
+        <div>
+            <div class="eyebrow">Charts</div>
+            <h2>Dashboard chart examples</h2>
+        </div>
+    </div>
+
+    <div class="dash-chart-grid">
+        <div class="dash-chart-box">
+            <div class="dash-chart-title">Area Chart Example</div>
+            <div class="dash-chart-body">
+                <div class="dash-sb-layout">
+                    <div class="dash-sb-axis dash-sb-area-axis">
+                        {% for tick in area_chart_ticks %}
+                            <span>{{ tick }}</span>
+                        {% endfor %}
+                    </div>
+                    <div class="dash-sb-plot">
+                        <div class="dash-sb-grid area">
+                            {% for tick in area_chart_ticks %}
+                                <span></span>
+                            {% endfor %}
+                        </div>
+                        <svg class="dash-area-svg" viewBox="0 0 104 62" preserveAspectRatio="none" role="img" aria-label="Area chart example">
+                            <polygon points="{{ area_chart_fill_points }}" fill="rgba(13, 110, 253, 0.2)"></polygon>
+                            <polyline points="{{ area_chart_points|join:' ' }}" fill="none" stroke="#0d6efd" stroke-width="1.3"></polyline>
+                            {% for point in area_chart_points_plot %}
+                                <circle cx="{{ point.x }}" cy="{{ point.y }}" r="1.05" fill="#0d6efd" stroke="#ffffff" stroke-width="0.5"></circle>
+                            {% endfor %}
+                        </svg>
+                    </div>
+                </div>
+                <div class="dash-area-x">
+                    {% for label in area_chart_labels_display %}
+                        <span>{{ label }}</span>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+        <div class="dash-chart-box">
+            <div class="dash-chart-title">Bar Chart Example</div>
+            <div class="dash-chart-body">
+                <div class="dash-sb-layout">
+                    <div class="dash-sb-axis dash-sb-bar-axis">
+                        {% for tick in bar_chart_ticks %}
+                            <span>{{ tick }}</span>
+                        {% endfor %}
+                    </div>
+                    <div class="dash-sb-plot">
+                        <div class="dash-sb-grid bar">
+                            {% for tick in bar_chart_ticks %}
+                                <span></span>
+                            {% endfor %}
+                        </div>
+                        <div class="dash-sb-bars">
+                            {% for item in bar_chart_data %}
+                                <div class="dash-sb-item">
+                                    <div class="dash-sb-bar" style="height: {{ item.height }}%; width: {{ item.bar_width }}%;"></div>
+                                    <small class="dash-sb-month">{{ item.label }}</small>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+{% if profile.role == 'employer' %}
+    <section class="mini-stats">
+        <div class="stat-card">
+            <div class="muted-label">My Jobs</div>
+            <div class="big-number">{{ employer_counts.jobs }}</div>
+        </div>
+        <div class="stat-card">
+            <div class="muted-label">Active Jobs</div>
+            <div class="big-number">{{ employer_counts.active_jobs }}</div>
+        </div>
+        <div class="stat-card">
+            <div class="muted-label">Applicants</div>
+            <div class="big-number">{{ employer_counts.applicants }}</div>
+        </div>
+        <div class="stat-card">
+            <div class="muted-label">Company</div>
+            <div class="big-number">{{ company.name|default:"Create profile" }}</div>
+        </div>
+    </section>
+
+    <section class="split-layout">
+        <div class="panel">
+            <div class="section-head" style="margin-top: 0;">
+                <div>
+                    <div class="eyebrow">Company Jobs</div>
+                    <h2>Jobs posted by your company</h2>
+                </div>
+                <a href="{% url 'my_jobs' %}" class="btn btn-secondary">Manage Jobs</a>
+            </div>
+            {% if company %}
+                <div class="soft-note" style="margin-bottom: 16px;">{{ company.name }} • {{ company.industry|default:"Industry pending" }} • {{ company.location|default:"Location pending" }}</div>
+            {% endif %}
+            {% if my_jobs %}
+                <div class="job-grid" style="grid-template-columns: repeat(2, minmax(0, 1fr));">
+                    {% for job in my_jobs %}
+                        <article class="job-card">
+                            <div class="job-meta">
+                                <span class="pill">{{ job.get_category_display }}</span>
+                                <span class="pill">{{ job.total_applications }} applicants</span>
+                            </div>
+                            <h3>{{ job.title }}</h3>
+                            <p>{{ job.location }} • {{ job.get_workplace_type_display }}</p>
+                            <div class="inline-actions">
+                                <a href="{% url 'job_detail' job.slug %}" class="btn btn-secondary">View Job</a>
+                            </div>
+                        </article>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="empty-state">No jobs posted yet. Create your company profile and publish your first opening.</div>
+            {% endif %}
+        </div>
+
+        <div class="panel">
+            <div class="section-head" style="margin-top: 0;">
+                <div>
+                    <div class="eyebrow">Applicants</div>
+                    <h2>Recent candidate applications</h2>
+                </div>
+                <a href="{% url 'applications' %}" class="btn btn-secondary">View All</a>
+            </div>
+            {% if recent_applications %}
+                <div class="card-grid" style="grid-template-columns: 1fr;">
+                    {% for application in recent_applications %}
+                        <article class="list-card">
+                            <div class="job-meta">
+                                <span class="pill">{{ application.status|title }}</span>
+                                <span class="pill">{{ application.current_city|default:"City not added" }}</span>
+                            </div>
+                            <h3>{{ application.full_name }}</h3>
+                            <p>{{ application.job.title }}</p>
+                            <p>{{ application.email }}{% if application.phone %} • {{ application.phone }}{% endif %}</p>
+                        </article>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="empty-state">No candidate applications have arrived yet.</div>
+            {% endif %}
+        </div>
+    </section>
+{% else %}
+    <section class="mini-stats">
+        <div class="stat-card">
+            <div class="muted-label">Applications</div>
+            <div class="big-number">{{ candidate_counts.applications }}</div>
+        </div>
+        <div class="stat-card">
+            <div class="muted-label">Reviewed</div>
+            <div class="big-number">{{ candidate_counts.reviewed }}</div>
+        </div>
+        <div class="stat-card">
+            <div class="muted-label">Shortlisted</div>
+            <div class="big-number">{{ candidate_counts.shortlisted }}</div>
+        </div>
+        <div class="stat-card">
+            <div class="muted-label">Resume Link</div>
+            <div class="big-number">{% if profile.resume_link %}Added{% else %}Pending{% endif %}</div>
+        </div>
+    </section>
+
+    <section class="split-layout">
+        <div class="panel">
+            <div class="section-head" style="margin-top: 0;">
+                <div>
+                    <div class="eyebrow">My Applications</div>
+                    <h2>Recent roles you applied for</h2>
+                </div>
+                <a href="{% url 'applications' %}" class="btn btn-secondary">View All</a>
+            </div>
+            {% if my_applications %}
+                <div class="card-grid" style="grid-template-columns: 1fr;">
+                    {% for application in my_applications %}
+                        <article class="list-card">
+                            <div class="job-meta">
+                                <span class="pill">{{ application.status|title }}</span>
+                                <span class="pill">{{ application.job.city|default:application.job.location }}</span>
+                            </div>
+                            <h3>{{ application.job.title }}</h3>
+                            <p>{{ application.job.company.name }}</p>
+                            <p>Applied on {{ application.applied_at|date:"M d, Y" }}</p>
+                        </article>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="empty-state">You have not applied to any jobs yet.</div>
+            {% endif %}
+        </div>
+
+        <div class="panel">
+            <div class="section-head" style="margin-top: 0;">
+                <div>
+                    <div class="eyebrow">Recommended Jobs</div>
+                    <h2>Jobs you can apply to now</h2>
+                </div>
+                <a href="{% url 'jobs' %}" class="btn btn-secondary">Browse All</a>
+            </div>
+            {% if recommended_jobs %}
+                <div class="card-grid" style="grid-template-columns: 1fr;">
+                    {% for job in recommended_jobs %}
+                        <article class="list-card">
+                            <div class="job-meta">
+                                <span class="pill">{{ job.get_category_display }}</span>
+                            </div>
+                            <h3>{{ job.title }}</h3>
+                            <p>{{ job.company.name }} • {{ job.location }}</p>
+                            <div class="inline-actions">
+                                <a href="{% url 'job_detail' job.slug %}" class="btn btn-primary">Apply Now</a>
+                            </div>
+                        </article>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="empty-state">No recommendations are available yet.</div>
+            {% endif %}
+        </div>
+    </section>
+{% endif %}
+{% endblock %}
